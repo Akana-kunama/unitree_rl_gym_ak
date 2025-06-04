@@ -88,6 +88,13 @@ class G1RoughCfg( LeggedRobotCfg ):
             feet_swing_height = -20.0
             contact = 0.18
 
+
+    class terrain(LeggedRobotCfg.terrain):
+        mesh_type = "trimesh"
+
+    class commands(LeggedRobotCfg.commands):
+        curriculum = True
+
 class G1RoughCfgPPO( LeggedRobotCfgPPO ):
     class policy:
         init_noise_std = 0.8

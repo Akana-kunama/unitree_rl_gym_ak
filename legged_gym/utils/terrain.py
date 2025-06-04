@@ -28,6 +28,8 @@ class Terrain:
         self.tot_rows = int(cfg.num_rows * self.length_per_env_pixels) + 2 * self.border
 
         self.height_field_raw = np.zeros((self.tot_rows , self.tot_cols), dtype=np.int16)
+        self.heightsamples = self.height_field_raw
+        
         if cfg.curriculum:
             self.curiculum()
         elif cfg.selected:
@@ -35,7 +37,7 @@ class Terrain:
         else:    
             self.randomized_terrain()   
         
-        self.heightsamples = self.height_field_raw
+        
         if self.type=="trimesh":
             self.vertices, self.triangles = terrain_utils.convert_heightfield_to_trimesh(   self.height_field_raw,
                                                                                             self.cfg.horizontal_scale,
@@ -79,7 +81,7 @@ class Terrain:
     def make_terrain(self, choice, difficulty):
         terrain = terrain_utils.SubTerrain(   "terrain",
                                 width=self.width_per_env_pixels,
-                                length=self.width_per_env_pixels,
+                                length=self.length_per_env_pixels,
                                 vertical_scale=self.cfg.vertical_scale,
                                 horizontal_scale=self.cfg.horizontal_scale)
         slope = difficulty * 0.4
