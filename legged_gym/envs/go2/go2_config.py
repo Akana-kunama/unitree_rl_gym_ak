@@ -1,6 +1,9 @@
 from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobotCfgPPO
 
 class GO2RoughCfg( LeggedRobotCfg ):
+    
+    class env(LeggedRobotCfg.env):
+        num_observations = 52
     class init_state( LeggedRobotCfg.init_state ):
         pos = [0.0, 0.0, 0.42] # x,y,z [m]
         default_joint_angles = { # = target angles [rad] when action = 0.0
@@ -44,10 +47,29 @@ class GO2RoughCfg( LeggedRobotCfg ):
         class scales( LeggedRobotCfg.rewards.scales ):
             torques = -0.0002
             dof_pos_limits = -10.0
-    
+
+            # additional scales
+            tracking_lin_vel = 1.0
+            tracking_ang_vel = 0.5
+            lin_vel_z = -2.0
+            
+            dof_acc = -2.5e-7
+            dof_vel = -1e-3
+            
+            alive = 0.15
+            
+            contact_no_vel = -0.2
+            feet_swing_height = -20.0
+            contact = 0.18
+            
+            
     class terrain(LeggedRobotCfg.terrain):
         mesh_type = "trimesh"
-
+        terrain_length = 4
+        terrain_width = 4
+        num_rows = 10
+        num_cols = 10
+        # good for 256 robots
     class commands(LeggedRobotCfg.commands):
         curriculum = True
 

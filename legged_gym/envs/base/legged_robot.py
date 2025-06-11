@@ -3,7 +3,6 @@ import time
 from warnings import WarningMessage
 import numpy as np
 import os
-import math
 
 from isaacgym.torch_utils import *
 from isaacgym import gymtorch, gymapi, gymutil
@@ -569,9 +568,16 @@ class LeggedRobot(BaseTask):
         # 这下面都是载入参数
         tm_params.nb_vertices = self.terrain.vertices.shape[0]
         tm_params.nb_triangles = self.terrain.triangles.shape[0]
+
+
+        #设置 lower_left coner
         tm_params.transform.p.x = -self.terrain.cfg.border_size 
         tm_params.transform.p.y = -self.terrain.cfg.border_size
         tm_params.transform.p.z = 0.0
+        #   x ∈ [-self.terrain.cfg.border_size ,-self.terrain.cfg.border_size + terrain_width]
+        #   y ∈ [-self.terrain.cfg.border_size ,-self.terrain.cfg.border_size + terrain_length]
+
+
         tm_params.static_friction = self.cfg.terrain.static_friction
         tm_params.dynamic_friction = self.cfg.terrain.dynamic_friction
         tm_params.restitution = self.cfg.terrain.restitution
@@ -680,33 +686,14 @@ class LeggedRobot(BaseTask):
         self.env_origins = torch.zeros(self.num_envs, 3, device=self.device, requires_grad=False)
         
         
-        # # create a grid of robots
-        # num_cols = np.floor(np.sqrt(self.num_envs))
-        # num_rows = np.ceil(self.num_envs / num_cols)
-        # xx, yy = torch.meshgrid(torch.arange(num_rows), torch.arange(num_cols))
-        # spacing = self.cfg.env.env_spacing
-        # self.env_origins[:, 0] = spacing * xx.flatten()[:self.num_envs]
-        # self.env_origins[:, 1] = spacing * yy.flatten()[:self.num_envs]
-        # self.env_origins[:, 2] = 0.
-
-        # build a √N×√N grid, then shift it by (–border_size, –border_size)
-        num_cols = math.floor(math.sqrt(self.num_envs))
-        num_rows = math.ceil(self.num_envs / num_cols)
-        xx, yy = torch.meshgrid(torch.arange(num_rows), torch.arange(num_cols), indexing='ij')
-
-        spacing = self.cfg.env.env_spacing  # e.g. 3.0 m :contentReference[oaicite:1]{index=1}
-        x_indices = xx.reshape(-1)[:self.num_envs].to(self.device)
-        y_indices = yy.reshape(-1)[:self.num_envs].to(self.device)
-
-        # compute mesh’s lower-left corner in world coords:
-        x_min = -self.cfg.terrain.border_size
-        y_min = -self.cfg.terrain.border_size
-
-        # place each origin inside [x_min, x_min + terrain_width] × [y_min, y_min + terrain_length]
-        self.env_origins[:, 0] = x_min + spacing * x_indices
-        self.env_origins[:, 1] = y_min + spacing * y_indices
-        self.env_origins[:, 2] = 0.0
-    
+        # create a grid of robots
+        num_cols = np.floor(np.sqrt(self.num_envs))
+        num_rows = np.ceil(self.num_envs / num_cols)
+        xx, yy = torch.meshgrid(torch.arange(num_rows), torch.arange(num_cols))
+        spacing = self.cfg.env.env_spacing
+        self.env_origins[:, 0] = spacing * xx.flatten()[:self.num_envs]
+        self.env_origins[:, 1] = spacing * yy.flatten()[:self.num_envs]
+        self.env_origins[:, 2] = 0.
 
     def _parse_cfg(self, cfg):
         self.dt = self.cfg.control.decimation * self.sim_params.dt
